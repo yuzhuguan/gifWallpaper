@@ -65,3 +65,17 @@ public class FreeWallpaperService extends WallpaperService {
    ...//engine
 }
 ```
+
+## 创建Engine
+我们现在就开始使用Engine工作。 在GIFWallpaperEngine类中创建一个名为GIFWallpaperService的类并继承WallpaperService.Engine。
+
+将以下字段添加到此新类中：
+
+frameDuration：该整数表示重绘操作的延迟时间。 值为20，每秒可以提供50帧。
+visible：这个布尔值允许engine知道动态壁纸当前在屏幕上是否可见。 这很重要，因为当不可见时，我们不应该绘制壁纸。
+movie：这是一个Movie对象形式的GIF动画 。
+holder：这是指向可用于engine的SurfaceHolder对象。 必须通过重写onCreate方法来初始化它。
+handler：这是一个Handler对象，用来启动一个Runnable来负责实际绘制壁纸对象。
+
+
+

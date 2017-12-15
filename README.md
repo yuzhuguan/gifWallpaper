@@ -33,3 +33,35 @@
           </meta-data>
     </service>
 ```
+接下来，要确保应用程序只能安装在可以运行动态壁纸的设备上，请将以下代码片段添加到清单中：
+
+```xml
+<uses-feature
+    android:name="android.software.live_wallpaper"
+    android:required="true" >
+</uses-feature>
+```
+## 创建服务
+创建一个新的Java类并将其命名为  GIFWallpaperService.java。 这个类继承WallpaperService
+因为  WallpaperService是一个抽象类，你必须重写它的onCreateEngine方法并返回一个自己的实例Engine，它可以渲染GIF的帧。
+
+要使用GIF动画，您首先必须将其转换为Movie对象。 可以使用Movie类的decodeStream方法来执行此操作。 一旦Movie对象被创建，把它作为一个参数传递给自定义Engine的构造函数。
+```java
+public class FreeWallpaperService extends WallpaperService {
+
+    @Override
+    public WallpaperService.Engine onCreateEngine() {
+        try {
+            Movie movie = Movie.decodeStream(
+                    getResources().getAssets().open("star.gif"));
+
+            return new GIFWallpaperEngine(movie);
+        }catch(IOException e){
+            Log.w("GIF", "Could not load asset");
+            return null;
+
+        }
+    }
+   ...//engine
+}
+```

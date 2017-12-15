@@ -76,6 +76,134 @@ visible：这个布尔值允许engine知道动态壁纸当前在屏幕上是否�
 movie：这是一个Movie对象形式的GIF动画 。
 holder：这是指向可用于engine的SurfaceHolder对象。 必须通过重写onCreate方法来初始化它。
 handler：这是一个Handler对象，用来启动一个Runnable来负责实际绘制壁纸对象。
+你的类现在应该是这样的：
+
+01
+02
+03
+04
+05
+06
+07
+08
+09
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+private class GIFWallpaperEngine extends WallpaperService.Engine {
+    private final int frameDuration = 20;
+ 
+    private SurfaceHolder holder;
+    private Movie movie;
+    private boolean visible;
+    private Handler handler;
+ 
+    public GIFWallpaperEngine(Movie movie) {
+        this.movie = movie;
+        handler = new Handler();
+    }
+ 
+    @Override
+    public void onCreate(SurfaceHolder surfaceHolder) {
+        super.onCreate(surfaceHolder);
+        this.holder = surfaceHolder;
+    }
+}
+接下来，创建一个名为draw的方法来绘制GIF动画的内容。 该方法分解为：
+
+我们首先检查visible变量是否设置为  true。 如果为true，我们才继续下去。
+使用SurfaceHolder的lockCanvas方法获取一个Canvas引用。
+在缩放和定位之后在Canvas上绘制GIF动画的框架。
+一旦所有的绘图完成，Canvas回传给SurfaceHolder。
+使用Movie对象的setTime方法更新GIF动画的当前帧。
+等待frameDuration几毫秒后再次使用handler调用该方法。
+draw方法从不直接调用。 它总是被Handler和Runnable对象调用。 因此，让Runnable对象成为类的一个字段并调用drawGIF。
+
+将以下代码添加到  GIFWallpaperService 类中：
+
+01
+02
+03
+04
+05
+06
+07
+08
+09
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+private Runnable drawGIF = new Runnable() {
+    public void run() {
+        draw();
+    }
+};
+ 
+private void draw() {
+    if (visible) {
+        Canvas canvas = holder.lockCanvas();
+        canvas.save();
+            // Adjust size and position so that
+            // the image looks good on your screen
+            canvas.scale(3f, 3f);
+            movie.draw(canvas, -100, 0);
+        canvas.restore();
+        holder.unlockCanvasAndPost(canvas);
+        movie.setTime((int) (System.currentTimeMillis() % movie.duration()));
+ 
+        handler.removeCallbacks(drawGIF);
+        handler.postDelayed(drawGIF, frameDuration);
+    }
+}
+每当壁纸的可视性变化时，onVisibilityChanged方法将自动调用。 我们需要重写它，并根据visible参数的值来启动或停止drawGIF。 Handler的removeCallbacks方法用于停止任何待处理的drawGIF。
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+@Override
+public void onVisibilityChanged(boolean visible) {
+    this.visible = visible;
+    if (visible) {
+        handler.post(drawGIF);
+    } else {
+        handler.removeCallbacks(drawGIF);
+    }
+}
+最后，如果壁纸被停用则重写Engine的onDestroy方法来停止任何待处理的drawGIF。
+
+1
+2
+3
+4
+5
+@Override
+public void onDestroy() {
+    super.onDestroy();
+    handler.removeCallbacks(drawGIF);
+}
 
 
 

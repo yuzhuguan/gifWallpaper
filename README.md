@@ -1,6 +1,7 @@
 # GifWallpaper
 
 当你看到美丽的GIF动画无缝循环播放时，你有没有想过是否可以将其用作Android设备上的动态壁纸呢？ 嗯，这个demo可以
+![demo](gifwallpaper5.gif)
 
 ## 描述壁纸
 动态壁纸需要一个描述它的文件。 创建一个名为res / xml / wallpaper.xml的新XML文件，并使用以下XML替换其内容：
